@@ -3,7 +3,7 @@ library(Rcpp)
 library(dplyr)
 library(gtools)
 library(plotly)
-sourceCpp("C:/Users/Haako/OneDrive/Documents/UiO/Master/Cluster LOWBMM/Cluster_LowBMM/Master/Cpp/leapandshift_sourceCpp.cpp") # use the C++ leap-and-shift function
+sourceCpp(file.path(".","/Cpp/leapandshift_sourceCpp.cpp")) # use the C++ leap-and-shift function
 source("MCMC.R")
 source("Simulations.R")
 source("Results.R")
@@ -12,11 +12,11 @@ library(ggplot2)
 
 ##### Fixing parametes #####
 N <- 20 # number of assessors 
-n <- 40 # total number of items
-n_star <- 20 # number of items selected to be "relevant", i.e. will have the highest ranks
+n <- 20 # total number of items
+n_star <- 8 # number of items selected to be "relevant", i.e. will have the highest ranks
 n_star_true <- n_star
 alpha_true <- alpha0 <- 2
-C <- 2 #number of clusters
+C <- 1#number of clusters
 thinning = 10 
 
 # Tuning parmameters for the MCMC
@@ -28,9 +28,9 @@ prob_back <- prob_forw <- 0.5
 burnin <- 0.3
 A_star <- matrix(c(1,20,2,19,3,18,4,17,5,16,6,15,7,14,8,13),nrow = 2)
 
-simulation <- sim_rank_consistency(n,N,C,n_star)
+#simulation <- sim_rank_consistency(n,N,C,n_star)
 
-#simulation <- sim_topK(n,N,C,n_star)
+simulation <- sim_topK(n,N,C,n_star)
 
 init <- generate_random_init(M,N,C,n_star)
 
@@ -86,6 +86,40 @@ for(i in 1:n){
 
 barplot(out[, rev(order(out[1,]))[1:n_star]], main = "Probability of items from MAP", xlab = "Column Index", ylab = "Value")
 
+#### HEATMAP TRIAL ####
+
+A_mat <- tail(mcmc$A_mcmc[[1]], n=1000)
+Rho_mat <- tail(mcmc$rho_mcmc[[1]], n=1000)
+df <- data.frame(a = numeric(nrow(Rho_mat)))
+for(i in 1:n){
+  rho_val <- Rho_mat[which(A_mat == i, arr.ind = TRUE)]
+  new_col <- c(rho_val, rep(NA, nrow(A_mat) - length(rho_val)))
+  col_name <- paste("item ", i)
+  df[, col_name] <- new_col
+}
+df <- df[, -1]
+
+
+rho_true <- simulation$true_rho[2,]
+df_1 <- NULL
+for(i in rho_true){
+  data<- table(df[,i])
+  t <- rep(0,n_star)
+  t[as.integer(names(data))] <- as.vector(data)/nrow(df)
+  df_tmp <- data.frame(
+    x = rep(names(df)[i], n_star),
+    y = c(1:n_star),
+    z = t
+  )
+  df_1 <- rbind(df_1, df_tmp)
+}
+
+heatmap <- ggplot(df_1, aes(x, y, fill = z)) +
+  geom_tile() +
+  scale_fill_gradient(low = "blue", high = "red", na.value = "gray") +
+  ylim(1,20) +
+  coord_cartesian(xlim = c(1, n), ylim = c(1, n_star)) +
+  theme(plot.background = element_rect(fill = "lightblue"))
 
 
 
