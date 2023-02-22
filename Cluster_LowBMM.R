@@ -8,20 +8,22 @@ source("MCMC.R")
 source("Simulations.R")
 source("Results.R")
 library(ggplot2)
+source("Functions.R")
+source("Visual.R")
 
 
 ##### Fixing parametes #####
-N <- 20 # number of assessors 
-n <- 20 # total number of items
-n_star <- 8 # number of items selected to be "relevant", i.e. will have the highest ranks
+N <- 80 # number of assessors 
+n <- 40 # total number of items
+n_star <- 12 # number of items selected to be "relevant", i.e. will have the highest ranks
 n_star_true <- n_star
-alpha_true <- alpha0 <- 2
-C <- 1#number of clusters
-thinning = 10 
+alpha_true <- alpha0 <- 5
+C <- 4#number of clusters
+thinning = 5
 
 # Tuning parmameters for the MCMC
 psi <- 10
-M <- 2e4
+M <- 4e4
 leap_size = round(n_star/5)
 L <- 2
 prob_back <- prob_forw <- 0.5
@@ -35,18 +37,17 @@ simulation <- sim_topK(n,N,C,n_star)
 init <- generate_random_init(M,N,C,n_star)
 
 #cluster_mcmc <- function(data, M, N,n_star, alpha0, rho0, A_star0, clusters )
-  
+
 mcmc <- cluster_mcmc(simulation$data, M, C, N, n_star, alpha0, init$rho0, init$A_star0, init$clusters, prob_back, prob_forw)
 
-results <- result_matrix(burnin_percentage = burnin, cluster_mcmc = mcmc$clusters, C, true_index_cluster =simulation$true_index_cluster,rho_mcmc= mcmc$rho_mcmc,A_mcmc = mcmc$A_mcmc, n_star,true_rank = simulation$true_ranks)
+
+#function(burnin, cluster_mcmc, C, true_index_cluster,rho_mcmc,A_mcmc, n_star,true_rank){
+results <- result_matrix(burnin = burnin, cluster_mcmc = mcmc$clusters, C = C, true_index_cluster =simulation$true_index_cluster,rho_mcmc= mcmc$rho_mcmc,A_mcmc = mcmc$A_mcmc, n_star = n_star,true_rank = simulation$true_ranks)
 
 
 trace <- trace_plot(mcmc$clusters)
 
-boxplot_mat <- boxplot_cluster(mcmc$clusters)
-boxplot(t(boxplot_mat))
-boxplot_mat
-
+cluster_boxplot <- boxplot_cluster(mcmc$clusters, burnin)
 
 
 
@@ -85,41 +86,17 @@ for(i in 1:n){
 }
 
 barplot(out[, rev(order(out[1,]))[1:n_star]], main = "Probability of items from MAP", xlab = "Column Index", ylab = "Value")
+############### VISUAL ###############
+#### HEATMAP for items  ####
 
-#### HEATMAP TRIAL ####
+heat <- heatplot_rho(A = mcmc$A_mcmc, rho = mcmc$rho_mcmc, burnin, n, n_star, C, simulation$true_ranks, results$matrix)
 
-A_mat <- tail(mcmc$A_mcmc[[1]], n=1000)
-Rho_mat <- tail(mcmc$rho_mcmc[[1]], n=1000)
-df <- data.frame(a = numeric(nrow(Rho_mat)))
-for(i in 1:n){
-  rho_val <- Rho_mat[which(A_mat == i, arr.ind = TRUE)]
-  new_col <- c(rho_val, rep(NA, nrow(A_mat) - length(rho_val)))
-  col_name <- paste("item ", i)
-  df[, col_name] <- new_col
-}
-df <- df[, -1]
+heat_1 <- heatplot_rho(mcmc$A_mcmc, mcmc$rho_mcmc, burnin, n, n_star, C)
 
 
-rho_true <- simulation$true_rho[2,]
-df_1 <- NULL
-for(i in rho_true){
-  data<- table(df[,i])
-  t <- rep(0,n_star)
-  t[as.integer(names(data))] <- as.vector(data)/nrow(df)
-  df_tmp <- data.frame(
-    x = rep(names(df)[i], n_star),
-    y = c(1:n_star),
-    z = t
-  )
-  df_1 <- rbind(df_1, df_tmp)
-}
+#### Barplot for MAP of A* items and rho ####
 
-heatmap <- ggplot(df_1, aes(x, y, fill = z)) +
-  geom_tile() +
-  scale_fill_gradient(low = "blue", high = "red", na.value = "gray") +
-  ylim(1,20) +
-  coord_cartesian(xlim = c(1, n), ylim = c(1, n_star)) +
-  theme(plot.background = element_rect(fill = "lightblue"))
+bar <- barplot_item(mcmc$A_mcmc, mcmc$rho_mcmc, burnin, n = n, n_star = n_star)
 
 
 

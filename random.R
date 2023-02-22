@@ -50,12 +50,5 @@ ggplot(df, aes(x, y, fill = z)) +
 
 
 
-
-
-
-fa <- table(df[,2])
-
-ta <- rep(0, 20)
-ta[as.integer(names(fa))] <- as.vector(fa)
-
-
+ga <- tail(mcmc$rho_mcmc[[1]],20)
+fa <- tail(mcmc$A_mcmc[[1]], 20)
