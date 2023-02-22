@@ -12,7 +12,7 @@ source("Functions.R")
 
 heatplot_rho <- function(A, rho, burnin, n, n_star,C, ranks = NULL, result = NULL){
   plots <- list()
-  for(c in 1:1){
+  for(c in 1:C){
     A_mat <- burnin_mat(A[[c]], burnin)
     Rho_mat <- burnin_mat(rho[[c]], burnin)
     df <- NULL

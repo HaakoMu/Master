@@ -52,3 +52,5 @@ ggplot(df, aes(x, y, fill = z)) +
 
 ga <- tail(mcmc$rho_mcmc[[1]],20)
 fa <- tail(mcmc$A_mcmc[[1]], 20)
+which(ga == 2)
+table(ga[which(fa == 21)])

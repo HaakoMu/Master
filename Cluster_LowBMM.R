@@ -93,7 +93,6 @@ heat <- heatplot_rho(A = mcmc$A_mcmc, rho = mcmc$rho_mcmc, burnin, n, n_star, C,
 
 heat_1 <- heatplot_rho(mcmc$A_mcmc, mcmc$rho_mcmc, burnin, n, n_star, C)
 
-
 #### Barplot for MAP of A* items and rho ####
 
 bar <- barplot_item(mcmc$A_mcmc, mcmc$rho_mcmc, burnin, n = n, n_star = n_star)
