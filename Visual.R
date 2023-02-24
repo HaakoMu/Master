@@ -124,4 +124,15 @@ trace_plot <- function(clusters, number = 5, spread = 100){
 }
 
 
+elbow_plot <- function(MAP, data, cluster, burnin){
+  C <- nrow(MAP)
+  clus_mat <- burnin_mat(cluster, burnin)
+  ass_cluster <- apply(clus_mat, 2, get_cluster)
+  for(c in 1:C){
+    ass_idx <- which(ass_cluster==c)
+    data_tmp <- NULL
+    for(i in 1:length(ass_idx)) rbind(data_tmp, )
+  }
+}
+
 

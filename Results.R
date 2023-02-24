@@ -36,6 +36,7 @@ result_matrix <- function(burnin, cluster_mcmc, C, true_index_cluster,rho_mcmc,A
     df <- df[df$y != 0,]
     df <- df[order(df$y,decreasing = FALSE),]
     rankedItems <- as.integer(rownames(head(df, n_star)))
+    
     # Proportion of correct items in the set
     tmp <- match(rankedItems, true_rank[tc,])
     
@@ -46,6 +47,24 @@ result_matrix <- function(burnin, cluster_mcmc, C, true_index_cluster,rho_mcmc,A
   return(list(matrix = results, rankedItems = rankedItems))
 }
 
+
+
+MAP <- function(cluster, A_star, rho, n, burnin){
+  C <- length(A_star)
+  clust_map <- burnin_mat(cluster, burnin)
+  n_star <- ncol(A_star[[1]])
+  A_map <- matrix(NA, ncol = n_star, nrow = C )
+  for(c in 1:C){
+    A_mat <- burnin_mat(A_star[[c]], burnin)
+    rho_mat <- burnin_mat(rho[[c]], burnin)
+    df <- Avg_ranks(rho_matrix = rho_mat,A_matrix = A_mat, n = n)
+    df <- df[df$y != 0,]
+    df <- df[order(df$y,decreasing = FALSE),]
+    items <- as.integer(rownames(head(df, n_star)))
+    A_map[c,] <- items
+  }
+  return(A_map)
+}
 
 
 

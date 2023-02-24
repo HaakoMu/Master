@@ -29,7 +29,8 @@ L <- 1
 prob_back <- prob_forw <- 0.5
 burnin <- 0.3
 A_star <- matrix(c(1,20,2,19,3,18,4,17,5,16,6,15,7,14,8,13),nrow = 2)
-
+  
+  
 simulation <- sim_rank_consistency(n,N,C,n_star)
 
 #simulation <- sim_topK(n,N,C,n_star)
@@ -98,5 +99,7 @@ heat_1 <- heatplot_rho(mcmc$A_mcmc, mcmc$rho_mcmc, burnin, n, n_star, C)
 bar <- barplot_item(mcmc$A_mcmc, mcmc$rho_mcmc, burnin, n = n, n_star = n_star)
 
 
+
+s <- MAP(cluster =mcmc$clusters, A_star = mcmc$A_mcmc, rho = mcmc$rho_mcmc, n =n, burnin = burnin)
 
 
