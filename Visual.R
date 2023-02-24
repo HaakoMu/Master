@@ -24,10 +24,22 @@ heatplot_rho <- function(A, rho, burnin, n, n_star,C, ranks = NULL, result = NUL
       df <- rbind(df, data.frame(
         x = rep(paste(i), n_star),
         y = c(1:n_star),
-        z = z))
+        z = z,
+        value = rep(sum(as.vector(data)/n_star, n_star))))
     }
     df <- df[order(df$z ==0, df$y, -ifelse(df$z == 0, NA, df$z)),]
-    print(df)
+    g1 <- ggplot(df, aes(x=fct_inorder(x), y=value)) +
+      geom_bar(color = "black", stat = "identity") +
+      ylab("Proportion") +
+      theme_minimal() +
+      theme(axis.text.x=element_blank(), 
+            axis.title.x = element_blank(), 
+            axis.ticks.x=element_blank(), 
+            axis.title = element_text(size = 14),
+            plot.margin=unit(c(1,1,-1,1), "cm")) 
+    
+    
+    
     g3 <- ggplot(df, aes(fct_inorder(x), y, fill= z) , de) + 
       geom_tile(color = "grey")+
       #theme_ipsum() +
@@ -48,7 +60,8 @@ heatplot_rho <- function(A, rho, burnin, n, n_star,C, ranks = NULL, result = NUL
       
       scale_fill_gradient2(low="blue", mid="white", high="red", midpoint=0.5, name="Posterior \n probability")
     
-    plots[[c]] <- g3
+    gg <- ggarrange(g1, g3, nrow = 2, ncol = 1, widths = 1, heights = c(0.4, 3))
+    plots[[c]] <- gg
   }
   return(plots)
 }

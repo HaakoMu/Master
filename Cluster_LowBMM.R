@@ -17,7 +17,7 @@ N <- 80 # number of assessors
 n <- 40 # total number of items
 n_star <- 12 # number of items selected to be "relevant", i.e. will have the highest ranks
 n_star_true <- n_star
-alpha_true <- alpha0 <- 5
+alpha_true <- alpha0 <- 3
 C <- 4#number of clusters
 thinning = 5
 
@@ -25,14 +25,14 @@ thinning = 5
 psi <- 10
 M <- 4e4
 leap_size = round(n_star/5)
-L <- 2
+L <- 1
 prob_back <- prob_forw <- 0.5
 burnin <- 0.3
 A_star <- matrix(c(1,20,2,19,3,18,4,17,5,16,6,15,7,14,8,13),nrow = 2)
 
-#simulation <- sim_rank_consistency(n,N,C,n_star)
+simulation <- sim_rank_consistency(n,N,C,n_star)
 
-simulation <- sim_topK(n,N,C,n_star)
+#simulation <- sim_topK(n,N,C,n_star)
 
 init <- generate_random_init(M,N,C,n_star)
 
