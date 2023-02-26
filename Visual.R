@@ -137,11 +137,13 @@ elbow_plot <- function(MAP, data, cluster, burnin){
         for(i in ass_idx){
           data_tmp <- rbind(data_tmp, rank(data[i, MAP[[t]][c,]], ties.method =  "min"))
         }
-        df <- rbind(df, data.frame(x= paste(t), y= sum(abs(scale(data_tmp, c(1:ncol(MAP[[1]])), scale = FALSE)))))
+        #x <- rep(paste(t), nrow(data_tmp))
+        #y <- apply(data_tmp, MARGIN=1, FUN=function(x) sum(x == c(1:ncol(MAP[[1]]))))
+        #df <- rbind(df, data.frame(x = x , y = y))
+        df <- rbind(df, data.frame(x= rep(paste(t),nrow(data_tmp)), y= rowSums(abs(scale(data_tmp, c(1:ncol(MAP[[1]])), scale = FALSE)))))
       }
     }
   }
-  print(df)
   ggplot(df, aes(x = x, y = y)) +
       geom_boxplot()
 }

@@ -15,7 +15,7 @@ source("Visual.R")
 ##### Fixing parametes #####
 N <- 80 # number of assessors 
 n <- 40 # total number of items
-n_star <- 12 # number of items selected to be "relevant", i.e. will have the highest ranks
+n_star <- 20 # number of items selected to be "relevant", i.e. will have the highest ranks
 n_star_true <- n_star
 alpha_true <- alpha0 <- 3
 C <- 4#number of clusters
@@ -23,14 +23,15 @@ thinning = 5
 
 # Tuning parmameters for the MCMC
 psi <- 10
-M <- 4e4
+M <- 2e4
 leap_size = round(n_star/5)
 L <- 1
 prob_back <- prob_forw <- 0.5
 burnin <- 0.3
 A_star <- matrix(c(1,20,2,19,3,18,4,17,5,16,6,15,7,14,8,13),nrow = 2)
-  
-  
+A_star_1 <- matrix(c(1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12), nrow=2)  
+
+
 simulation <- sim_rank_consistency(n,N,C,n_star)
 
 #simulation <- sim_topK(n,N,C,n_star)
@@ -101,5 +102,22 @@ bar <- barplot_item(mcmc$A_mcmc, mcmc$rho_mcmc, burnin, n = n, n_star = n_star)
 
 
 s <- MAP(cluster =mcmc$clusters, A_star = mcmc$A_mcmc, rho = mcmc$rho_mcmc, n =n, burnin = burnin)
+
+
+
+MAP_list <- list()
+cluster_list <- list()
+for(k in 1:6){
+  init <- generate_random_init(M,N,k,n_star)
+  mcmc <- cluster_mcmc(simulation$data, M, k, N, n_star, alpha0, init$rho0, init$A_star0, init$clusters, prob_back, prob_forw)
+  cluster_list[[k]] <- mcmc$clusters
+  MAP_list[[k]] <- MAP(cluster =mcmc$clusters, A_star = mcmc$A_mcmc, rho = mcmc$rho_mcmc, n =n, burnin = burnin)
+}
+
+
+elbow_plot(MAP = MAP_list, data = simulation$data, cluster = cluster_list, burnin = burnin)
+
+
+
 
 

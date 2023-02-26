@@ -13,6 +13,7 @@ result_matrix <- function(burnin, cluster_mcmc, C, true_index_cluster,rho_mcmc,A
   res_names <- c("Cluster", "True Cluster","No. Assessors","No. Correct Assessors","No. Correct Items", "No. Missclassification", "Prop. Correct Items")
   results <- matrix(NA, nrow = C, ncol = length(res_names))
   colnames(results) <- res_names
+  MAP <- NULL
   
   ##### Creating matrix for the results #####
   clus_mat <- burnin_mat(cluster_mcmc,burnin)
@@ -35,7 +36,10 @@ result_matrix <- function(burnin, cluster_mcmc, C, true_index_cluster,rho_mcmc,A
     df <- Avg_ranks(rho_mat, A_mat,n)
     df <- df[df$y != 0,]
     df <- df[order(df$y,decreasing = FALSE),]
+    print(df)
     rankedItems <- as.integer(rownames(head(df, n_star)))
+    
+    MAP <- rbind(MAP, rankedItems)
     
     # Proportion of correct items in the set
     tmp <- match(rankedItems, true_rank[tc,])
@@ -44,7 +48,7 @@ result_matrix <- function(burnin, cluster_mcmc, C, true_index_cluster,rho_mcmc,A
     results[c, "No. Missclassification"] <- n_star - results[c,"No. Correct Items"]
     results[c, "Prop. Correct Items"] <- results[c,"No. Correct Items"]/n_star 
   }
-  return(list(matrix = results, rankedItems = rankedItems))
+  return(list(matrix = results, MAP = MAP))
 }
 
 
