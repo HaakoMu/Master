@@ -17,5 +17,5 @@ burnin_mat <- function(df, burnin){
 
 get_cluster <- function(x) {
   tab <- table(x)
-  as.integer(names(tab)[tab == max(tab)])
+  sample(as.integer(names(tab)[tab == max(tab)]), size=1)
 }

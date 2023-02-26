@@ -125,14 +125,25 @@ trace_plot <- function(clusters, number = 5, spread = 100){
 
 
 elbow_plot <- function(MAP, data, cluster, burnin){
-  C <- nrow(MAP)
-  clus_mat <- burnin_mat(cluster, burnin)
-  ass_cluster <- apply(clus_mat, 2, get_cluster)
-  for(c in 1:C){
-    ass_idx <- which(ass_cluster==c)
-    data_tmp <- NULL
-    for(i in 1:length(ass_idx)) rbind(data_tmp, )
+  df <- NULL
+  for(t in 1:length(MAP)){
+    C <- nrow(MAP[[t]])
+    clus_mat <- burnin_mat(cluster[[t]], burnin)
+    ass_cluster <- apply(clus_mat, 2, get_cluster)
+    for(c in 1:C){
+      ass_idx <- which(ass_cluster==c)
+      if(length(ass_idx) !=0){
+        data_tmp <- NULL
+        for(i in ass_idx){
+          data_tmp <- rbind(data_tmp, rank(data[i, MAP[[t]][c,]], ties.method =  "min"))
+        }
+        df <- rbind(df, data.frame(x= paste(t), y= sum(abs(scale(data_tmp, c(1:ncol(MAP[[1]])), scale = FALSE)))))
+      }
+    }
   }
+  print(df)
+  ggplot(df, aes(x = x, y = y)) +
+      geom_boxplot()
 }
 
 
