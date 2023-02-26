@@ -105,6 +105,8 @@ s <- MAP(cluster =mcmc$clusters, A_star = mcmc$A_mcmc, rho = mcmc$rho_mcmc, n =n
 
 
 
+
+
 MAP_list <- list()
 cluster_list <- list()
 for(k in 1:6){

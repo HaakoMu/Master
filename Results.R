@@ -71,6 +71,21 @@ MAP <- function(cluster, A_star, rho, n, burnin){
 }
 
 
+cluster_comparions <- function(data, cluster_set, iterations, n_star, alpha0, prob_back=0.5, prob_forw=0.5, burnin ){
+  N <- nrow(data)
+  n <- ncol(data)
+  result_list <- list()
+  MAP_list <- list()
+  cluster_list <- list()
+  for(k in cluster_set){
+    init <- generate_random_init(iterations,N,k,n_star)
+    mcmc <- cluster_mcmc(data, iterations, k, N, n_star, alpha0, init$rho0, init$A_star0, init$clusters, prob_back, prob_forw)
+    cluster_list[[k]] <- mcmc$clusters
+    MAP_list[[k]] <- MAP(cluster =mcmc$clusters, A_star = mcmc$A_mcmc, rho = mcmc$rho_mcmc, n = n, burnin = burnin)
+  }
+  return(elbow_plot(MAP = MAP_list, data = data, cluster = cluster_list, burnin = burnin))
+}
+
 
 
 

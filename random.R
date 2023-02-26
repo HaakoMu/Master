@@ -54,3 +54,16 @@ ga <- tail(mcmc$rho_mcmc[[1]],20)
 fa <- tail(mcmc$A_mcmc[[1]], 20)
 which(ga == 2)
 table(ga[which(fa == 21)])
+
+
+
+
+
+
+
+
+fas <- NULL
+fas <- rbind(fas, c(1,2,3,4,5,6))
+fas <- rbind(fas, c(2,3,4,5,6,7))
+fa <- matrix(c(1:9), ncol = 3)
+rowSums(fa)
