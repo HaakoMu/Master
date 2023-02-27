@@ -13,26 +13,31 @@ source("Visual.R")
 
 
 ##### Fixing parametes #####
-N <- 80 # number of assessors 
-n <- 40 # total number of items
-n_star <- 20 # number of items selected to be "relevant", i.e. will have the highest ranks
+N <- 200 # number of assessors 
+n <- 20 # total number of items
+n_star <- 8 # number of items selected to be "relevant", i.e. will have the highest ranks
 n_star_true <- n_star
-alpha_true <- alpha0 <- 3
+alpha_true <- alpha0 <- 10
 C <- 4#number of clusters
-thinning = 5
+thinning = 10
 
 # Tuning parmameters for the MCMC
 psi <- 10
 M <- 2e4
 leap_size = round(n_star/5)
 L <- 1
+leap_size = 2
 prob_back <- prob_forw <- 0.5
-burnin <- 0.3
+burnin <- 0.8
 A_star <- matrix(c(1,20,2,19,3,18,4,17,5,16,6,15,7,14,8,13),nrow = 2)
-A_star_1 <- matrix(c(1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12), nrow=2)  
+A_star_1 <- matrix(c(1,1,40,40,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12), nrow=2)  
+A <- NULL
+A <- rbind(A, c(1:8))
+A <- rbind(A, c(1:8))
+A <- rbind(A, c(5:12))
+A <- rbind(A, c(13:20))
 
-
-simulation <- sim_rank_consistency(n,N,C,n_star)
+simulation <- sim_rank_consistency(n,N,C,n_star, true_A_star = A)
 
 #simulation <- sim_topK(n,N,C,n_star)
 
@@ -40,7 +45,7 @@ init <- generate_random_init(M,N,C,n_star)
 
 #cluster_mcmc <- function(data, M, N,n_star, alpha0, rho0, A_star0, clusters )
 
-mcmc <- cluster_mcmc(simulation$data, M, C, N, n_star, alpha0, init$rho0, init$A_star0, init$clusters, prob_back, prob_forw)
+mcmc <- cluster_mcmc(simulation$data, M, C, N, n_star, alpha0, init$rho0, init$A_star0, init$clusters, prob_back, prob_forw, leap_size = leap_size, L=L)
 
 
 #function(burnin, cluster_mcmc, C, true_index_cluster,rho_mcmc,A_mcmc, n_star,true_rank){
@@ -51,41 +56,6 @@ trace <- trace_plot(mcmc$clusters)
 
 cluster_boxplot <- boxplot_cluster(mcmc$clusters, burnin)
 
-
-
-
-fix_burnin <- function(x){
-  m <- nrow(x)
-  b <<- burnin
-  print(x)
-  print(m)
-  return(x[m*b:m,])
-}
-asd <- mcmc$A_mcmc
-fff <- nrow(asd[[1]])*burnin
-A_post <- lapply(asd, function(x) x[-c(1:fff), ])
-
-
-my_matrix <- A_post[[1]]
-paste(my_matrix[1,], collapse = ",")
-
-
-count_unique_strings <- function(x) {
-  paste(my_matrix[1,], collapse = ",")
-}
-
-# Apply the custom function to each row of the matrix
-string_counts <- apply(my_matrix, 1, count_unique_strings)
-MAP <- as.integer(strsplit((dimnames(my_table)[[1]][which.max(table(string_counts))]), ",")[[1]])
-
-
-out <- matrix(nrow=1, ncol=0)
-
-for(i in 1:n){
-  col <- matrix(sum(my_matrix==i)/nrow(my_matrix), ncol = 1)
-  colnames(col) <- as.character(i)
-  out <- cbind(out, col,deparse.level = 0)
-}
 
 barplot(out[, rev(order(out[1,]))[1:n_star]], main = "Probability of items from MAP", xlab = "Column Index", ylab = "Value")
 ############### VISUAL ###############
@@ -104,22 +74,4 @@ bar <- barplot_item(mcmc$A_mcmc, mcmc$rho_mcmc, burnin, n = n, n_star = n_star)
 s <- MAP(cluster =mcmc$clusters, A_star = mcmc$A_mcmc, rho = mcmc$rho_mcmc, n =n, burnin = burnin)
 
 
-
-
-
-MAP_list <- list()
-cluster_list <- list()
-for(k in 1:6){
-  init <- generate_random_init(M,N,k,n_star)
-  mcmc <- cluster_mcmc(simulation$data, M, k, N, n_star, alpha0, init$rho0, init$A_star0, init$clusters, prob_back, prob_forw)
-  cluster_list[[k]] <- mcmc$clusters
-  MAP_list[[k]] <- MAP(cluster =mcmc$clusters, A_star = mcmc$A_mcmc, rho = mcmc$rho_mcmc, n =n, burnin = burnin)
-}
-
-
-elbow_plot(MAP = MAP_list, data = simulation$data, cluster = cluster_list, burnin = burnin)
-
-
-
-
-
+t <- new_map(cluster =mcmc$clusters, A = mcmc$A_mcmc, rho = mcmc$rho_mcmc,  burnin = burnin, n=n)

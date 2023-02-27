@@ -4,7 +4,7 @@ sourceCpp("C:/Users/Haako/OneDrive/Documents/UiO/Master/Cluster LOWBMM/lowBMM/Cp
 
 
 
-cluster_mcmc <- function(data, M, C, N,n_star, alpha0, rho0, A_star0, clusters,  prob_back,prob_forw, thinning = 10){
+cluster_mcmc <- function(data, M, C, N,n_star, alpha0, rho0, A_star0, clusters,  prob_back,prob_forw, thinning = 10, leap_size=1, L = 2){
   ##### Initialization ######
   ## Proposal/old ##
   rho_old_matrix <- matrix(data = NA, nrow= C, ncol = n_star)
@@ -29,7 +29,7 @@ cluster_mcmc <- function(data, M, C, N,n_star, alpha0, rho0, A_star0, clusters, 
   #### MCMC ####
   for(m in 2:M) {
     
-    tau <- rdirichlet(10, dir+as.numeric(table(current_cluster)))
+    tau <- rdirichlet(C, dir+as.numeric(table(current_cluster)))
     include <- m%%thinning
     for(c in 1:C){
       ### MH step 1: update rho restricted on A* ###
@@ -115,7 +115,7 @@ cluster_mcmc <- function(data, M, C, N,n_star, alpha0, rho0, A_star0, clusters, 
       rho_old_matrix[c,] <- rho_old
       A_star_old_matrix[c,] <- A_star_old
       # Save current values
-      if(include){
+      if(!include){
         rho_mcmc[[c]][floor(m/thinning),] <- rho_old
         A_mcmc[[c]][floor(m/thinning),] <- A_star_old
         RATIO_rho[[c]] <- c(RATIO_rho, ratio_rho)
@@ -135,7 +135,10 @@ cluster_mcmc <- function(data, M, C, N,n_star, alpha0, rho0, A_star0, clusters, 
       }
       z_N <- which(rmultinom(1,1,p_cj)==1)
       current_cluster[j] <- z_N
-      if(include) clusters[floor(m/thinning),j] <- z_N
+      if(!include){
+        clusters[floor(m/thinning),j] <- z_N
+        print(m)
+      }
     }
     
   }

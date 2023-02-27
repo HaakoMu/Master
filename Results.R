@@ -36,7 +36,6 @@ result_matrix <- function(burnin, cluster_mcmc, C, true_index_cluster,rho_mcmc,A
     df <- Avg_ranks(rho_mat, A_mat,n)
     df <- df[df$y != 0,]
     df <- df[order(df$y,decreasing = FALSE),]
-    print(df)
     rankedItems <- as.integer(rownames(head(df, n_star)))
     
     MAP <- rbind(MAP, rankedItems)
@@ -88,5 +87,23 @@ cluster_comparions <- function(data, cluster_set, iterations, n_star, alpha0, pr
 
 
 
+
+new_map <- function(cluster, A, rho, burnin, n){
+  C <- length(A)
+  clust_map <- burnin_mat(cluster, burnin)
+  n_star <- ncol(A[[1]])
+  A_map <- list()
+  for(c in 1:C){
+    A_mat <- burnin_mat(A[[c]], burnin)
+    rho_mat <- burnin_mat(rho[[c]], burnin)
+    NMAP <- NULL
+    for(i in unique(A_mat)){
+      data <- table(rho_mat[which(A_mat==i,arr.ind = TRUE)])
+      NMAP <- rbind(NMAP, data.frame(item = i, rank = as.integer(names(data)[which(data ==max(data)[1] )]), freq = max(data)[1]))
+    }
+    A_map[[c]] <- NMAP[order(NMAP$rank, NMAP$freq),]
+  }
+  return(A_map)
+}
 
 
