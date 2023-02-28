@@ -1,6 +1,7 @@
-Avg_ranks <- function(rho_matrix, A_matrix, n){
+Avg_ranks <- function(rho_matrix, A_matrix, n, set = NULL){
   df = NULL
-  for(i in 1:n){
+  if(is.null(set)) set <- c(1:n)
+  for(i in set){
     idx <- which(A_matrix ==  i)
     df <- rbind(df, data.frame(x = paste("item ", i), y = sum(rho_matrix[idx]/length(idx))))
   }
@@ -17,5 +18,5 @@ burnin_mat <- function(df, burnin){
 
 get_cluster <- function(x) {
   tab <- table(x)
-  sample(as.integer(names(tab)[tab == max(tab)]), size=1)
+  as.integer(names(tab)[which.max(tab)])
 }

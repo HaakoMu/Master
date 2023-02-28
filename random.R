@@ -56,14 +56,7 @@ which(ga == 2)
 table(ga[which(fa == 21)])
 
 
+c <- c(1,1,4,6,7,8,1,2,2,2,2,2,52,52,52,52,52,52,52)
+d <- table(c)
+as.integer(names(d)[which(d == max(d), arr.ind = TRUE)])
 
-
-
-
-
-
-fas <- NULL
-fas <- rbind(fas, c(1,2,3,4,5,6))
-fas <- rbind(fas, c(2,3,4,5,6,7))
-fa <- matrix(c(1:9), ncol = 3)
-rowSums(fa)

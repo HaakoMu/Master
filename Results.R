@@ -92,16 +92,22 @@ new_map <- function(cluster, A, rho, burnin, n){
   C <- length(A)
   clust_map <- burnin_mat(cluster, burnin)
   n_star <- ncol(A[[1]])
-  A_map <- list()
+  A_map <- NULL
   for(c in 1:C){
     A_mat <- burnin_mat(A[[c]], burnin)
     rho_mat <- burnin_mat(rho[[c]], burnin)
-    NMAP <- NULL
-    for(i in unique(A_mat)){
-      data <- table(rho_mat[which(A_mat==i,arr.ind = TRUE)])
-      NMAP <- rbind(NMAP, data.frame(item = i, rank = as.integer(names(data)[which(data ==max(data)[1] )]), freq = max(data)[1]))
+    df <- Avg_ranks(rho_matrix = rho_mat,A_matrix = A_mat, set = unique(c(A_mat)))
+    df$y <- floor(df$y)
+    freq <- NULL
+    newx <- NULL
+    for(i in df$x){
+      ii <- as.integer(strsplit(i, " ")[[1]][3])
+      newx <- c(newx,ii)
+      freq <- c(freq, length(which(rho_mat[which(A_mat==ii,arr.ind = TRUE),] <= df[which(df$x == i), "y"])) )
     }
-    A_map[[c]] <- NMAP[order(NMAP$rank, NMAP$freq),]
+    df$freq <-freq 
+    df$x <- newx
+    A_map <- rbind(A_map, head(df[order(df$y, -df$freq),], n= n_star)$x)
   }
   return(A_map)
 }

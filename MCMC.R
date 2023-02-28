@@ -125,22 +125,23 @@ cluster_mcmc <- function(data, M, C, N,n_star, alpha0, rho0, A_star0, clusters, 
     }
     #Update clusters Gibbs
     for(j in 1:N){
-      p_cj <- c()
+      p_cj <- NULL
+      suss <- NULL
       for(c in 1:C){
         #Z(alpha) må finne
         A_star_old <- A_star_old_matrix[c,]
         rho_old <- rho_old_matrix[c,]
         relabel_data <- rank(data[j,A_star_old], ties.method = "min")
         p_cj <- c(p_cj, tau[c]* exp(-alpha_old/n_star*(sum(abs(relabel_data- rho_old)))))
+        suss <- c(suss, sum(abs(relabel_data- rho_old)))
       }
+      #if(m>18000) print(p_cj)
       z_N <- which(rmultinom(1,1,p_cj)==1)
       current_cluster[j] <- z_N
       if(!include){
         clusters[floor(m/thinning),j] <- z_N
-        print(m)
       }
     }
-    
   }
   return(list(rho_mcmc = rho_mcmc, clusters = clusters, A_mcmc = A_mcmc, ACC_A = ACC_A, ACC_rho = ACC_rho ))
-}
+  

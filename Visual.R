@@ -25,7 +25,7 @@ heatplot_rho <- function(A, rho, burnin, n, n_star,C, ranks = NULL, result = NUL
         x = rep(paste(i), n_star),
         y = c(1:n_star),
         z = z,
-        value = rep(sum(as.vector(data)/n_star, n_star))))
+        value = rep(sum(as.vector(data), n_star))))
     }
     df <- df[order(df$z ==0, df$y, -ifelse(df$z == 0, NA, df$z)),]
     g1 <- ggplot(df, aes(x=fct_inorder(x), y=value)) +
