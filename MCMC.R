@@ -4,9 +4,10 @@ sourceCpp("C:/Users/Haako/OneDrive/Documents/UiO/Master/Cluster LOWBMM/lowBMM/Cp
 
 
 
-cluster_mcmc <- function(data, M, C, N,n_star, alpha0, rho0, A_star0, clusters,  prob_back,prob_forw, thinning = 10, leap_size=1, L = 2){
+cluster_mcmc <- function(data, M, C, N,n_star, alpha0, rho0, A_star0, clusters,  prob_back,prob_forw, thinning = 10, leap_size=1, L = 2, psi = 25){
   ##### Initialization ######
   ## Proposal/old ##
+  n = ncol(data)
   rho_old_matrix <- matrix(data = NA, nrow= C, ncol = n_star)
   A_star_old_matrix <- matrix(data= NA, nrow = C, ncol = n_star)
   current_cluster <- clusters[1,]
@@ -22,14 +23,13 @@ cluster_mcmc <- function(data, M, C, N,n_star, alpha0, rho0, A_star0, clusters, 
     ACC_rho[[c]] <- RATIO_rho[[c]] <- ACC_A[[c]] <- RATIO_A[[c]] <- c(0)
   }
   ##  Tau ## 
-  dir <- rep(C,psi)
+  dir <- rep(psi,C)
   tau <- rdirichlet(C,dir)
   
   
   #### MCMC ####
   for(m in 2:M) {
-    
-    tau <- rdirichlet(C, dir+as.numeric(table(current_cluster)))
+    tau <- rdirichlet(C, dir+as.numeric(table(factor(current_cluster, levels = c(1:C)))))
     include <- m%%thinning
     for(c in 1:C){
       ### MH step 1: update rho restricted on A* ###
@@ -37,6 +37,7 @@ cluster_mcmc <- function(data, M, C, N,n_star, alpha0, rho0, A_star0, clusters, 
       assesors <- which(current_cluster==c)
       N_a <- length(assesors) #number of assesors in each cluster
       if(N_a>0){
+        if(N_a<2) print(m)
         A_star_old <- A_star_old_matrix[c,]
         rho_old <-  rho_old_matrix[c,]
         tmp <- leap_and_shift(rho_proposal = rho_prop[[c]], indices = c(1:n_star), prob_backward = prob_back, prob_forward = prob_forw, rho = rho_old, leap_size = leap_size, reduce_indices = F)
@@ -72,8 +73,9 @@ cluster_mcmc <- function(data, M, C, N,n_star, alpha0, rho0, A_star0, clusters, 
         
         ### MH step 2: update A* ###
         # 2a. Sample A* proposed by perturbing L items
-        removed_items <- sample.int(n = n_star, size = L) # index of items to be removed in A*
-        new_items <- sample(setdiff(1:n, A_star_old), size = L)
+        L_c <- random_number <- sample(1:L, 1)
+        removed_items <- sample.int(n = n_star, size = L_c) # index of items to be removed in A*
+        new_items <- sample(setdiff(1:n, A_star_old), size = L_c)
         A_star_prop[[c]] <- sort(c(A_star_old[-removed_items], new_items))
         
         # 2b. Update data according to new set (ranks should go from in 1,..,n*)
@@ -89,7 +91,6 @@ cluster_mcmc <- function(data, M, C, N,n_star, alpha0, rho0, A_star0, clusters, 
         idx_match_prop <- match(A_star_old, A_star_prop[[c]])[!is.na(match(A_star_old, A_star_prop[[c]]))]
         rho_prop_star[idx_match_prop] <- rho_old[idx_match_old]
         idx <- match(new_items, A_star_prop[[c]]) # index of the new item(s) in A*
-        
         # Alternative: if we want to order the new items based on their avg data rankings
         #idx2 <- A_star_prop[idx]
         #idx3 <- sort(avg_ranks[idx2],index.return = TRUE)$ix # sorting new items based on ranking
@@ -99,7 +100,7 @@ cluster_mcmc <- function(data, M, C, N,n_star, alpha0, rho0, A_star0, clusters, 
         
         
         rho_prop_star[idx] <- rho_old[removed_items]
-        
+
         # 2d. Compute MH ratio and accept/reject
         ratio_A <- min(1, exp(-alpha_old/n_star*(sum(abs(scale(prop_selection, rho_prop_star, scale = FALSE)))-
                                                    sum(abs(scale(selection, rho_old, scale = FALSE))))))
@@ -126,14 +127,12 @@ cluster_mcmc <- function(data, M, C, N,n_star, alpha0, rho0, A_star0, clusters, 
     #Update clusters Gibbs
     for(j in 1:N){
       p_cj <- NULL
-      suss <- NULL
       for(c in 1:C){
         #Z(alpha) må finne
         A_star_old <- A_star_old_matrix[c,]
         rho_old <- rho_old_matrix[c,]
         relabel_data <- rank(data[j,A_star_old], ties.method = "min")
         p_cj <- c(p_cj, tau[c]* exp(-alpha_old/n_star*(sum(abs(relabel_data- rho_old)))))
-        suss <- c(suss, sum(abs(relabel_data- rho_old)))
       }
       #if(m>18000) print(p_cj)
       z_N <- which(rmultinom(1,1,p_cj)==1)
@@ -144,4 +143,4 @@ cluster_mcmc <- function(data, M, C, N,n_star, alpha0, rho0, A_star0, clusters, 
     }
   }
   return(list(rho_mcmc = rho_mcmc, clusters = clusters, A_mcmc = A_mcmc, ACC_A = ACC_A, ACC_rho = ACC_rho ))
-  
+}
